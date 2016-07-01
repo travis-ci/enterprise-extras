@@ -37,12 +37,15 @@ AWS_ACCESS_KEY="[aws_key]" AWS_SECRET_KEY="[aws_secret]" packer build worker.jso
 
 ## Starting an Worker instance
 
-The current latest AMI id is `ami-a340f9b4`. You can start up a fully working instance using the command below:
+The current latest AMI id is `ami-a340f9b4`.
+
+You can start up a fully working instance using the command below:
 
 ```
 aws ec2 run-instances \
   --image-id ami-a340f9b4 \
   --instance-type c3.xlarge \
+  --count [num-of-instances] \
   --key-name [key-name] \
   --user-data file://user_data.sh
 ```
@@ -55,9 +58,10 @@ As a small bonus, you can also start a new worker instance, and tag it at the sa
 aws ec2 create-tags \
   --resources `aws ec2 run-instances \
     --image-id ami-a340f9b4 \
-    --key-name [key-name] \
     --instance-type c3.xlarge \
+    --count [num-of-instances] \
+    --key-name [key-name] \
     --user-data file://user_data.sh \
-    | jq -r ".Instances[0].InstanceId"` \
+    | jq -r '.Instances | map(.InstanceId) | join(" ")'` \
   --tags "Key=Name,Value=travis-enterprise-worker"
 ```
