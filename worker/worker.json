@@ -11,7 +11,8 @@
     "source_ami": "ami-fce3c696",
     "instance_type": "c3.xlarge",
     "ssh_username": "ubuntu",
-    "ami_name": "Travis CI Enterprise Worker - {{isotime \"2006-01-02\"}}"
+    "ami_name": "Travis CI Enterprise Worker - {{isotime \"2006-01-02\"}}",
+    "ami_groups": ["all"]
   }],
   "provisioners": [{
     "type": "shell",
