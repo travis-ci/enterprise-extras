@@ -1,0 +1,91 @@
+#!/bin/bash
+. config.env
+
+echo 'finding EC2 security group'
+aws ec2 describe-security-groups --group-names $AWS_TAG_PREFIX-platform > /dev/null 2>&1
+
+if [ $? != 255 ]
+then
+  echo "security group found!"
+else
+  echo "couldn't find a security group, creating one"
+  aws ec2 create-security-group --group-name $AWS_TAG_PREFIX-platform --description "Travis CI Enteprise Platform Requirements" > /dev/null 2>&1
+
+  for port in 22 80 443 8800 4567 5672
+  do
+    aws ec2 authorize-security-group-ingress --group-name $AWS_TAG_PREFIX-platform \
+      --protocol tcp --port $port --cidr 0.0.0.0/0
+  done
+fi
+
+
+
+
+echo
+echo "creating and tagging platform instance"
+declare platform_id=`aws ec2 run-instances --image-id $WORKER_AMI --instance-type c3.xlarge --security-groups $AWS_TAG_PREFIX-platform --key-name $AWS_KEY_NAME | jq -r '.Instances | map(.InstanceId) | join(" ")'`
+aws ec2 create-tags \
+  --resources $platform_id \
+  --tags "Key=Name,Value=$AWS_TAG_PREFIX-platform"
+echo "created platform instance ($platform_id)"
+echo
+
+echo "waiting for the instance to come up, please wait a minute (or two)"
+sleep 120
+
+
+
+
+echo "retrieving the hostname"
+declare platform_host=`aws ec2 describe-instances --instance-ids $platform_id | jq -r '.Reservations[].Instances[].PublicDnsName'`
+echo "=> $platform_host"
+
+echo "starting the platform provisioning process (sit back and relax)"
+ansible-playbook platform/travis.yml \
+  -i platform/platform \
+  -u ubuntu \
+  --extra-vars "travis ansible_ssh_host=$platform_host github_type=$GITHUB_TYPE github_host=$GITHUB_HOST github_clientid=$GITHUB_CLIENTID github_clientsecret=$GITHUB_CLIENTSECRET rabbitmq_password=$RABBITMQ_PASSWORD replicated_daemon_token=$REPLICATED_DAEMON_TOKEN replicated_license=$REPLICATED_LICENSE" \
+  > provisioning.out
+echo "provisioning finished, check out provisioning.out for more details"
+
+
+
+
+echo
+echo "checking for an ELB to use"
+aws elb describe-load-balancers --load-balancer-name $AWS_TAG_PREFIX > /dev/null 2>&1
+if [ $? != 255 ]
+then
+  echo "ELB found, adding instance"
+  aws elb register-instances-with-load-balancer \
+    --load-balancer-name $AWS_TAG_PREFIX \
+    --instances $platform_id \
+    > /dev/null 2>&1
+else
+  echo "no ELB found"
+fi
+
+
+
+## Generate user data for starting up the worker
+read -r -d "" user_data << EOF
+#!/bin/bash
+
+TRAVIS_ENTERPRISE_HOST="$platform_host"
+TRAVIS_ENTERPRISE_SECURITY_TOKEN="$RABBITMQ_PASSWORD"
+
+sed -i "s/\# export TRAVIS_ENTERPRISE_HOST=\"enterprise.yourhostname.corp\"/export TRAVIS_ENTERPRISE_HOST=\"\$TRAVIS_ENTERPRISE_HOST\"/" /etc/default/travis-enterprise
+sed -i "s/\# export TRAVIS_ENTERPRISE_SECURITY_TOKEN=\"abcd1234\"/export TRAVIS_ENTERPRISE_SECURITY_TOKEN=\"\$TRAVIS_ENTERPRISE_SECURITY_TOKEN\"/" /etc/default/travis-enterprise
+EOF
+
+echo
+echo "starting $WORKER_COUNT workers"
+aws ec2 create-tags \
+  --resources `aws ec2 run-instances \
+    --image-id ami-a340f9b4 \
+    --instance-type c3.xlarge \
+    --count $WORKER_COUNT \
+    --key-name $AWS_KEY_NAME \
+    --user-data "$user_data" \
+    | jq -r '.Instances | map(.InstanceId) | join(" ")'` \
+  --tags "Key=Name,Value=$AWS_TAG_PREFIX-worker"
