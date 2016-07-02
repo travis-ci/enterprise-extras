@@ -1,0 +1,4 @@
+---
+- name: Patching ssh_config for CVE-2016-0777
+  sudo: yes
+  lineinfile: dest=/etc/ssh/ssh_config line="UseRoaming no"

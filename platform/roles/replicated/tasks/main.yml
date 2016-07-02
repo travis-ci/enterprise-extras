@@ -1,0 +1,18 @@
+# All 2.0 installations use the same process
+- include: replicated-2.0.yml
+  when: replicated_version == "2.0"
+
+- include: centos.yml
+  when: replicated_version == "1.2" and ansible_distribution == "CentOS"
+
+- include: ubuntu.yml
+  when: replicated_version == "1.2" and ansible_distribution == "Ubuntu"
+
+- name: configure logrotate
+  when: replicated_version == "1.2"
+  copy:
+    src: logrotate
+    dest: /etc/logrotate.d/replicated
+    owner: root
+    group: root
+    mode: 0644

@@ -1,0 +1,73 @@
+- include: docker.yml
+
+- name: Get IP Address of Docker0
+  shell: echo $(ip -4 addr show docker0 | grep "inet " | cut -d' ' -f6 | cut -d/ -f1)
+  register: docker0
+
+- name: Pull the replicated image
+  raw: docker pull quay.io/replicated/replicated:{{ replicated_image_tag }}
+
+- name: Run Replicated container
+  docker:
+    registry: quay.io
+    image: quay.io/replicated/replicated:{{ replicated_image_tag }}
+    ports: >
+      9874:9874/tcp,
+      9875:9875/tcp,
+      9876:9876/tcp,
+      9877:9877/tcp,
+      9878:9878/tcp,
+      9879:9879/tcp,
+      9880:9880/tcp
+    name: replicated
+    volumes:
+      - /:/replicated/host:ro
+      - /etc/replicated.conf:/etc/replicated.conf
+      - /var/run/replicated:/var/run/replicated
+      - /etc/docker.certs.d:/host/etc/docker/certs.d
+      - /var/run/docker.sock:/host/var/run/docker.sock
+      - /var/lib/replicated:/var/lib/replicated
+      - /etc/server.crt:/etc/server.crt
+      - /etc/server.key:/etc/server.key
+      - /tmp/license.rli:/tmp/license.rli
+      - /tmp/settings.json:/tmp/settings.json
+      - /proc:/host/proc:ro
+      - /etc/os-release:/host/etc/os-release:ro
+      - /etc/system-release:/host/etc/system-release:ro
+      - /etc/replicated.alias:/etc/replicated.alias
+      - /etc/system-release:/host/etc/system-release:ro
+    restart_policy: always
+    env: >
+      DOCKER_HOST_IP={{ docker0.stdout }},
+      LOCAL_ADDRESS={{ docker0.stdout }},
+      RELEASE_CHANNEL={{ replicated_channel }},
+      DAEMON_TOKEN={{ replicated_daemon_token }}
+
+- name: Run Replicated-UI container
+  docker:
+    registry: quay.io
+    image: quay.io/replicated/replicated-ui:{{ replicated_image_tag }}
+    ports: 8800:8800/tcp
+    name: replicated-ui
+    volumes:
+    - /var/run/replicated:/var/run/replicated
+    restart_policy: always
+
+- name: Run Replicated Operator
+  docker:
+    registry: quay.io
+    image: quay.io/replicated/replicated-operator:{{ replicated_image_tag }}
+    name: replicated-operator
+    volumes:
+    - /:/replicated/host
+    - /var/lib/replicated-operator:/var/lib/replicated-operator
+    - /var/run/docker.sock:/host/var/run/docker.sock
+    - /etc/docker/certs.d:/host/etc/docker/certs.d
+    - /proc:/host/proc:ro
+    - /etc/os-release:/host/etc/os-release:ro
+    - /etc/system-release:/host/etc/system-release:ro
+    restart_policy: always
+    env: >
+      DOCKER_HOST_IP={{ docker0.stdout }},
+      DAEMON_ENDPOINT={{ docker0.stdout }}:9879,
+      DAEMON_TOKEN={{ replicated_daemon_token }}

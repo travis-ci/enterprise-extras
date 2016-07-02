@@ -1,0 +1,13 @@
+- name: Add GPG Key
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: 68386EDB2C8B75CA615A8C985D4781862AFFAC40
+
+- name: Add APT Repository
+  apt_repository: repo='deb https://get.replicated.com/apt all {{ replicated_channel }}'
+
+- name: Install Replicated Components
+  apt: pkg={{ item }} state=present update-cache=yes
+  with_items:
+    - replicated
+    - replicated-ui

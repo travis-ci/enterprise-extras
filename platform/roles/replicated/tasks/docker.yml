@@ -1,0 +1,14 @@
+- name: Support for AUFS
+  when: ansible_distribution == "Ubuntu"
+  shell: apt-get install -y -q linux-image-extra-$(uname -r)
+
+- name: Add Docker repository key
+  when: ansible_distribution == "Ubuntu"
+  shell: curl -sSL {{ docker_apt_key_url }} | sudo apt-key add -
+
+- name: Add Docker repository and update apt cache
+  when: ansible_distribution == "Ubuntu"
+  apt_repository:
+    repo: "{{ docker_apt_repository }}"
+    update_cache: yes
+    state: present

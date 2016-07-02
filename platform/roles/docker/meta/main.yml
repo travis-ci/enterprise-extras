@@ -1,0 +1,27 @@
+---
+galaxy_info:
+  author: Mark Stillwell
+  description: Docker Cross-Platform Parallel
+  license: GPLv2
+  min_ansible_version: 1.9
+  platforms:
+  - name: Ubuntu
+    versions:
+    - trusty
+    - precise
+  - name: Debian
+    versions:
+    - jessie
+    - wheezie
+  - name: Fedora
+    versions:
+    - 21
+    - 20
+  - name: CentOS
+    versions:
+    - 7.0
+    - 6.5
+  categories: 
+  - system
+  - cloud
+dependencies: []

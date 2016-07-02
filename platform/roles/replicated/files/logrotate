@@ -1,0 +1,8 @@
+/var/log/replicated/*.log {
+  size 500k
+  rotate 4
+  nocreate
+  compress
+  notifempty
+  missingok
+}

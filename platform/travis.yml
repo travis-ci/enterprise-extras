@@ -1,0 +1,10 @@
+---
+# file: travis.yml
+- hosts: travis
+  sudo: yes
+  roles:
+    - common
+    - ntp
+    - docker
+    - travis
+    - replicated

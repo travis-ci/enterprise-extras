@@ -1,0 +1,30 @@
+- name: Download Replicated GPG Key
+  shell: "{{ item }}"
+  with_items:
+    - gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 822819BB
+    - gpg --export -a 822819BB > /tmp/replicated_pub.asc
+
+- name: Import Replicated GPG Key
+  rpm_key:
+    state: present
+    key: /tmp/replicated_pub.asc
+
+- name: Configure Replicated YUM Repo
+  template:
+    src: replicated.repo.j2
+    dest: /etc/yum.repos.d/replicated.repo
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Install Replicated Components
+  yum: name={{ item }} state=present
+  with_items:
+    - replicated
+    - replicated-ui
+
+- name: Start Replicated Components
+  service: name={{ item }} state=started
+  with_items:
+    - replicated
+    - replicated-ui
