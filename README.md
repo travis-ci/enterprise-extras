@@ -91,3 +91,10 @@ You can then have Terraform do its magic by running:
 ```
 terraform apply -var-file=config.tfvars
 ```
+
+
+## Platform Goodies
+
+More to come soon.
+
+If you are impatient, you can check out `bootstrap.sh` and `config.env.example`.
