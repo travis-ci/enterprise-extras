@@ -70,10 +70,8 @@ fi
 ## Generate user data for starting up the worker
 read -r -d "" user_data << EOF
 #!/bin/bash
-
 TRAVIS_ENTERPRISE_HOST="$platform_host"
 TRAVIS_ENTERPRISE_SECURITY_TOKEN="$RABBITMQ_PASSWORD"
-
 sed -i "s/\# export TRAVIS_ENTERPRISE_HOST=\"enterprise.yourhostname.corp\"/export TRAVIS_ENTERPRISE_HOST=\"\$TRAVIS_ENTERPRISE_HOST\"/" /etc/default/travis-enterprise
 sed -i "s/\# export TRAVIS_ENTERPRISE_SECURITY_TOKEN=\"abcd1234\"/export TRAVIS_ENTERPRISE_SECURITY_TOKEN=\"\$TRAVIS_ENTERPRISE_SECURITY_TOKEN\"/" /etc/default/travis-enterprise
 EOF
