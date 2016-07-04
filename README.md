@@ -1,4 +1,6 @@
-# Travis CI Enterprise Worker Extras
+# Travis CI Enterprise Extras
+
+## Worker Goodies
 
 Setting up a Travis CI Enterprise Worker should never be a hassle. Why shouldn't it be only sunshine, rainbows and unicorns.
 
@@ -9,41 +11,53 @@ To make life easier for you, we have created an AMI with the following goodies b
   - uses libcontainer, and not LXC.
   - downloads all Docker images on boot, which is required as instance storage is used.
 
-Also, if you want to build you own AMI, you can use the supplied Packer template.
+The current AMIs supplied by Travis CI are:
+
+**eu-west-1**: ami-17dfba64
+**us-east-1**: ami-dffe7bc8
+**us-west-1**: ami-5fa0e73f
 
 
-## Building a new AMI
+### Building a new Worker AMI
 
-If you want to build your own AMI you can use the included `worker.json` as a template to start from.
+If you want to build your own AMI you can use the included `worker.json` in the `worker` directory as a template to start from.
 
-For example, if you don't want all the build environment images to be download, you can change the following line in the `worker.json` file from:
-
-```
-"sudo bash /tmp/installer --aws=true --ami_build=true"
-```
-
-to:
+Then you can build your new AMI using either:
 
 ```
-"sudo bash /tmp/installer --aws=true --ami_build=true --travis_lang_images=\"ruby jvm node-js\""
+packer build -var-file=config.json worker.json
+```
+or
+```
+packer build \
+  -var 'aws_access_key=[key]' \
+  -var 'aws_access_key=[secret]' \
+  worker.json
 ```
 
-Then you can build your new AMI using:
+The current Packer config allows for the following options:
+- *aws_access_key* the AWS access key to use.
+- *aws_secret_key* the AWS access secret matched with the access key.
+- *aws_region* (optional, default: us-east-1) which AWS region to use.
+- *aws_ami_groups* (optional) if you want to make the AMI public, set this to "all".
+- *aws_ami_regions* (optional) which regions to copy the AMI to.
+- *travis_extra_vars* (optional) extra vars which are passed to the Worker provisioning script.
 
+If you would like to limit which Build Environment images should be installed, this can be done via:
 ```
-AWS_ACCESS_KEY="[aws_key]" AWS_SECRET_KEY="[aws_secret]" packer build worker.json
+{
+  ...
+  "travis_extra_vars": "--travis_lang_images=\"ruby jvm node-js\""
+}
 ```
 
-
-## Starting an Worker instance
-
-The current latest AMI id is `ami-a340f9b4`.
+### Starting an Worker instance (AWS CLI)
 
 You can start up a fully working instance using the command below:
 
 ```
 aws ec2 run-instances \
-  --image-id ami-a340f9b4 \
+  --image-id ami-dffe7bc8 \
   --instance-type c3.xlarge \
   --count [num-of-instances] \
   --key-name [key-name] \
@@ -64,4 +78,16 @@ aws ec2 create-tags \
     --user-data file://user_data.sh \
     | jq -r '.Instances | map(.InstanceId) | join(" ")'` \
   --tags "Key=Name,Value=travis-enterprise-worker"
+```
+
+### Starting an Worker instance (terraform)
+
+We have also supplied the beginnings of some Terraform configs which will allow you to get a Worker cluster up and running in minutes. You can find these in the `terraform` directory.
+
+It is recommended you copy `config.tfvars.example` to `config.tfvars`, and add the AWS key name you would like your worker instances to use, as well as the Platform host name, and RabbitMQ password.
+
+You can then have Terraform do its magic by running:
+
+```
+terraform apply -var-file=config.tfvars
 ```

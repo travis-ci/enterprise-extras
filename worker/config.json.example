@@ -1,0 +1,7 @@
+{
+  "aws_access_key": "[aws-key]",
+  "aws_secret_key": "[aws-secret]",
+  "aws_region": "us-east-1",
+  "aws_ami_regions": "us-east-1,us-west-1,eu-west-1",
+  "travis_extra_vars": "--travis_lang_images=\"ruby jvm node-js\""
+}

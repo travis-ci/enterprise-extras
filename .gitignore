@@ -1,2 +1,6 @@
 provisioning.out
 config.env
+config.json
+config.tfvars
+terraform.tfstate
+terraform.tfstate.backup

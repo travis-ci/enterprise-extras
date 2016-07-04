@@ -1,0 +1,8 @@
+
+aws_key_name = "bob"
+
+worker_count = 3
+
+enterprise_host_name = "enterprise.example.corp"
+
+rabbitmq_password = "supersecurepassword"
