@@ -13,9 +13,10 @@ To make life easier for you, we have created an AMI with the following goodies b
 
 The current AMIs supplied by Travis CI are:
 
-- **eu-west-1**: `ami-17dfba64`
-- **us-east-1**: `ami-dffe7bc8`
-- **us-west-1**: `ami-5fa0e73f`
+- **eu-central-1**: `ami-1906ec76`
+- **eu-west-1**: `ami-f7583f84`
+- **us-east-1**: `ami-3fff7928`
+- **us-west-1**: `ami-f52c6a95`
 
 
 ### Building a new Worker AMI
