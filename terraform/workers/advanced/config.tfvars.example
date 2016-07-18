@@ -1,0 +1,7 @@
+env = "staging"
+
+ssh_key_name = "josh"
+
+enterprise_host_name = "travis.example.corp"
+
+rabbitmq_password = "supersecurepassword"

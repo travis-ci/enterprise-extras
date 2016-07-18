@@ -21,7 +21,7 @@ The current AMIs supplied by Travis CI are:
 
 ### Building a new Worker AMI
 
-If you want to build your own AMI you can use the included `worker.json` in the `worker` directory as a template to start from.
+If you want to build your own AMI you can use the included `worker.json` in the `packer/worker` directory as a template to start from.
 
 Then you can build your new AMI using either:
 
@@ -83,7 +83,11 @@ aws ec2 create-tags \
 
 ### Starting an Worker instance (terraform)
 
-We have also supplied the beginnings of some Terraform configs which will allow you to get a Worker cluster up and running in minutes. You can find these in the `terraform` directory.
+In the `terraform/workers` directory you can find two sets of Terraform configs, a simple one and an advanced one.
+
+The **simple** config starts a set number of workers, along with the recommended security group.
+
+The **advanced** config sets up a full VPC, Nat, Bastion, separate subnets, routes, internet gateway, and ASG (for managing desired instances)
 
 It is recommended you copy `config.tfvars.example` to `config.tfvars`, and add the AWS key name you would like your worker instances to use, as well as the Platform host name, and RabbitMQ password.
 
@@ -93,9 +97,10 @@ You can then have Terraform do its magic by running:
 terraform apply -var-file=config.tfvars
 ```
 
+There are many more config options you can also dive into, but we recommend starting simple.
 
 ## Platform Goodies
 
 More to come soon.
 
-If you are impatient, you can check out `bootstrap.sh` and `config.env.example`.
+If you are impatient, you can check out `bootstrap.sh` and `config.env.example` in the `scripts` directory.

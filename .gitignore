@@ -1,5 +1,6 @@
 provisioning.out
 config.env
+.terraform/
 config.json
 config.tfvars
 terraform.tfstate
