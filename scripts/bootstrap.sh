@@ -23,7 +23,7 @@ fi
 
 echo
 echo "creating and tagging platform instance"
-declare platform_id=`aws ec2 run-instances --image-id $PLATFORM_AMI --instance-type c3.xlarge --security-groups $AWS_TAG_PREFIX-$ENVIRONMENT-platform --key-name $AWS_KEY_NAME | jq -r '.Instances | map(.InstanceId) | join(" ")'`
+declare platform_id=`aws ec2 run-instances --image-id $PLATFORM_AMI --instance-type c3.xlarge --security-groups $AWS_TAG_PREFIX-$ENVIRONMENT-platform --key-name $AWS_KEY_NAME --block-device-mappings 'DeviceName=/dev/sda1, Ebs={VolumeSize=50}' | jq -r '.Instances | map(.InstanceId) | join(" ")'`
 aws ec2 create-tags \
   --resources $platform_id \
   --tags "Key=Name,Value=$AWS_TAG_PREFIX-$ENVIRONMENT-platform"
