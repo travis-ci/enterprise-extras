@@ -20,7 +20,6 @@ fi
 
 
 
-
 echo
 echo "creating and tagging platform instance"
 declare platform_id=`aws ec2 run-instances --image-id $PLATFORM_AMI --instance-type c3.xlarge --security-groups $AWS_TAG_PREFIX-$ENVIRONMENT-platform --key-name $AWS_KEY_NAME --block-device-mappings 'DeviceName=/dev/sda1, Ebs={VolumeSize=50}' | jq -r '.Instances | map(.InstanceId) | join(" ")'`
@@ -49,7 +48,6 @@ echo "provisioning finished, check out provisioning.out for more details"
 
 
 
-
 echo
 echo "checking for an ELB to use"
 aws elb describe-load-balancers --load-balancer-name $AWS_TAG_PREFIX-$ENVIRONMENT > /dev/null 2>&1
@@ -68,27 +66,3 @@ fi
 
 echo
 echo "Time to use your instance!"
-exit
-
-
-
-## Generate user data for starting up the worker
-read -r -d "" user_data << EOF
-#!/bin/bash
-TRAVIS_ENTERPRISE_HOST="$platform_host"
-TRAVIS_ENTERPRISE_SECURITY_TOKEN="$RABBITMQ_PASSWORD"
-sed -i "s/\# export TRAVIS_ENTERPRISE_HOST=\"enterprise.yourhostname.corp\"/export TRAVIS_ENTERPRISE_HOST=\"\$TRAVIS_ENTERPRISE_HOST\"/" /etc/default/travis-enterprise
-sed -i "s/\# export TRAVIS_ENTERPRISE_SECURITY_TOKEN=\"abcd1234\"/export TRAVIS_ENTERPRISE_SECURITY_TOKEN=\"\$TRAVIS_ENTERPRISE_SECURITY_TOKEN\"/" /etc/default/travis-enterprise
-EOF
-
-echo
-echo "starting $WORKER_COUNT workers"
-aws ec2 create-tags \
-  --resources `aws ec2 run-instances \
-    --image-id ami-a340f9b4 \
-    --instance-type c3.xlarge \
-    --count $WORKER_COUNT \
-    --key-name $AWS_KEY_NAME \
-    --user-data "$user_data" \
-    | jq -r '.Instances | map(.InstanceId) | join(" ")'` \
-  --tags "Key=Name,Value=$AWS_TAG_PREFIX-$ENVIRONMENT-worker"
