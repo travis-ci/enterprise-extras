@@ -103,4 +103,4 @@ There are many more config options you can also dive into, but we recommend star
 
 More to come soon.
 
-If you are impatient, you can check out `bootstrap.sh` and `config.env.example` in the `scripts` directory.
+If you are impatient, you can check out `platform.sh`, `worker.sh` and `config.env.example` in the `scripts` directory.
