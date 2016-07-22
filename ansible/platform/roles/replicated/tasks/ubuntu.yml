@@ -1,2 +1,0 @@
-- include: ubuntu-1.2.yml
-  when: replicated_version == "1.2"

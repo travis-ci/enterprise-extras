@@ -1,7 +1,7 @@
 ---
 # Replicated Ansible Variables
 
-replicated_version: "2.0"             # This can be 1.2 or 2.0
+replicated_version: "2.0"           # 2.0 is the only supported version
 replicated_channel: stable          # stable | beta | unstable
 replicated_environment: production  # production | staging
 
